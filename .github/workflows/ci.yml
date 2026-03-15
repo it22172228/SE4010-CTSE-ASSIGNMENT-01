@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service: [user-service, restaurant-service, order-service, notification-service]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies and lint
+      working-directory: ./services/${{ matrix.service }}
+      run: |
+        npm install
+        npm run lint --if-present
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker Image
+      working-directory: ./services/${{ matrix.service }}
+      run: |
+        docker build -t smart-restaurant/${{ matrix.service }}:test .
