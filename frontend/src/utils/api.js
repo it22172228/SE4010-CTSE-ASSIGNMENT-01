@@ -27,6 +27,8 @@ export const restaurantAPI = {
     getRestaurants: () => axios.get(`${RESTAURANT_API}/restaurants`),
     getRestaurant: (id) => axios.get(`${RESTAURANT_API}/restaurants/${id}`),
     getMenu: (id) => axios.get(`${RESTAURANT_API}/restaurants/${id}/menu`),
+    createRestaurant: (data) => axios.post(`${RESTAURANT_API}/restaurants`, data, { headers: getAuthHeaders() }),
+    updateRestaurant: (restaurantId, data) => axios.put(`${RESTAURANT_API}/restaurants/${restaurantId}`, data, { headers: getAuthHeaders() }),
     // Owner APIs
     getOwnerRestaurants: () => axios.get(`${RESTAURANT_API}/restaurants/owner`, { headers: getAuthHeaders() }),
     createMenuItem: (restaurantId, data) => axios.post(`${RESTAURANT_API}/restaurants/${restaurantId}/menu`, data, { headers: getAuthHeaders() }),

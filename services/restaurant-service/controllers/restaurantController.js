@@ -165,6 +165,33 @@ const deleteMenuItem = async (req, res, next) => {
     }
 };
 
+const updateRestaurant = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { name, cuisine, image } = req.body;
+
+        const restaurant = await Restaurant.findById(id);
+        if (!restaurant) {
+            res.status(404);
+            throw new Error('Restaurant not found');
+        }
+
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+            res.status(403);
+            throw new Error('Forbidden: not the owner');
+        }
+
+        if (name !== undefined) restaurant.name = name;
+        if (cuisine !== undefined) restaurant.cuisine = cuisine;
+        if (image !== undefined) restaurant.image = image;
+
+        const updated = await restaurant.save();
+        res.json(updated);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getRestaurants,
     getRestaurantById,

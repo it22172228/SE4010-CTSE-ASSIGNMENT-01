@@ -9,7 +9,10 @@ const OwnerDashboard = () => {
     const [selected, setSelected] = useState(null);
     const [menu, setMenu] = useState([]);
     const [form, setForm] = useState({ name: '', price: '', category: '', image: '' });
+    const [restaurantForm, setRestaurantForm] = useState({ name: '', cuisine: '', image: '' });
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -58,8 +61,32 @@ const OwnerDashboard = () => {
             const { data } = await restaurantAPI.getMenu(selected._id || selected.id);
             setMenu(data);
             setForm({ name: '', price: '', category: '', image: '' });
+            setSuccessMsg('Menu item added');
+            setErrorMsg('');
         } catch (err) {
             console.error('Create failed', err);
+            const msg = err.response?.data?.message || err.response?.data || err.message;
+            setErrorMsg(String(msg));
+            setSuccessMsg('');
+        }
+    };
+
+    const handleCreateRestaurant = async () => {
+        try {
+            const payload = { ...restaurantForm };
+            const { data } = await restaurantAPI.createRestaurant(payload);
+            // refresh list
+            const { data: listData } = await restaurantAPI.getOwnerRestaurants();
+            const list = Array.isArray(listData) ? listData : (listData?.restaurants || []);
+            setRestaurants(list);
+            if (list.length > 0) setSelected(list[0]);
+            setRestaurantForm({ name: '', cuisine: '', image: '' });
+            setSuccessMsg('Restaurant created');
+            setErrorMsg('');
+        } catch (err) {
+            console.error('Create restaurant failed', err);
+            const msg = err.response?.data?.message || err.message;
+            setErrorMsg(String(msg));
         }
     };
 
@@ -87,13 +114,27 @@ const OwnerDashboard = () => {
                     <div className="w-1/3 bg-white p-4 rounded-2xl shadow-sm">
                         <h3 className="font-semibold mb-3">Your Restaurants</h3>
                         <div className="space-y-2">
-                            {restaurants.map(r => (
-                                <button key={r._id || r.id} onClick={() => setSelected(r)} className={`w-full text-left p-3 rounded-lg ${selected && (selected._id||selected.id) === (r._id||r.id) ? 'bg-primary-50' : 'hover:bg-gray-50'}`}>
-                                    <div className="font-medium">{r.name}</div>
-                                    <div className="text-sm text-gray-500">{r.cuisine}</div>
-                                </button>
-                            ))}
+                            {restaurants.length === 0 ? (
+                                <div className="text-sm text-gray-500">You have no restaurants yet. Create one below.</div>
+                            ) : (
+                                restaurants.map(r => (
+                                    <button key={r._id || r.id} onClick={() => setSelected(r)} className={`w-full text-left p-3 rounded-lg ${selected && (selected._id||selected.id) === (r._id||r.id) ? 'bg-primary-50' : 'hover:bg-gray-50'}`}>
+                                        <div className="font-medium">{r.name}</div>
+                                        <div className="text-sm text-gray-500">{r.cuisine}</div>
+                                    </button>
+                                ))
+                            )}
                         </div>
+
+                        {restaurants.length === 0 && (
+                            <div className="mt-4">
+                                <h4 className="font-medium mb-2">Create Restaurant</h4>
+                                <input value={restaurantForm.name} onChange={e => setRestaurantForm({...restaurantForm, name: e.target.value})} placeholder="Name" className="w-full p-2 mb-2 border rounded" />
+                                <input value={restaurantForm.cuisine} onChange={e => setRestaurantForm({...restaurantForm, cuisine: e.target.value})} placeholder="Cuisine" className="w-full p-2 mb-2 border rounded" />
+                                <input value={restaurantForm.image} onChange={e => setRestaurantForm({...restaurantForm, image: e.target.value})} placeholder="Image URL (optional)" className="w-full p-2 mb-2 border rounded" />
+                                <button onClick={handleCreateRestaurant} className="w-full px-4 py-2 bg-primary-600 text-white rounded-xl">Create Restaurant</button>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm">
@@ -102,6 +143,8 @@ const OwnerDashboard = () => {
                         </div>
 
                         <div className="mb-6">
+                            {errorMsg && <div className="bg-red-50 text-red-600 p-3 rounded mb-3">{errorMsg}</div>}
+                            {successMsg && <div className="bg-green-50 text-green-600 p-3 rounded mb-3">{successMsg}</div>}
                             <h4 className="font-semibold mb-2">Add Menu Item</h4>
                             <div className="grid grid-cols-4 gap-2">
                                 <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Name" className="p-2 border rounded" />
@@ -110,6 +153,8 @@ const OwnerDashboard = () => {
                                 <input value={form.image} onChange={e => setForm({...form, image: e.target.value})} placeholder="Image URL" className="p-2 border rounded" />
                             </div>
                             <button onClick={handleCreate} className="mt-3 px-4 py-2 bg-primary-600 text-white rounded-xl">Add Item</button>
+                            <div className="mt-3 text-xs text-gray-500">Debug: selected id = {selected?._id || selected?.id}</div>
+                            <button onClick={() => console.log('token:', localStorage.getItem('token'))} className="mt-2 text-xs text-gray-500 underline">Log token to console</button>
                         </div>
 
                         <div>

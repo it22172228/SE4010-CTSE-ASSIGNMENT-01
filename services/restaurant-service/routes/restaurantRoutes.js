@@ -25,5 +25,7 @@ router.post('/', protect, createRestaurant);
 router.post('/:id/menu', protect, createMenuItem);
 router.put('/:id/menu/:menuId', protect, updateMenuItem);
 router.delete('/:id/menu/:menuId', protect, deleteMenuItem);
+// Update restaurant details (owner only)
+router.put('/:id', protect, updateRestaurant);
 
 module.exports = router;
