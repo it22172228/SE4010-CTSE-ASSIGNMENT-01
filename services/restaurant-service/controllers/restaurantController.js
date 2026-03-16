@@ -114,7 +114,8 @@ const updateMenuItem = async (req, res, next) => {
             throw new Error('Restaurant not found');
         }
 
-        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+        // Allow action if owner or admin
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id) && req.user?.role !== 'admin') {
             res.status(403);
             throw new Error('Forbidden: not the owner');
         }
@@ -147,7 +148,8 @@ const deleteMenuItem = async (req, res, next) => {
             throw new Error('Restaurant not found');
         }
 
-        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+        // Allow action if owner or admin
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id) && req.user?.role !== 'admin') {
             res.status(403);
             throw new Error('Forbidden: not the owner');
         }
@@ -176,7 +178,8 @@ const updateRestaurant = async (req, res, next) => {
             throw new Error('Restaurant not found');
         }
 
-        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+        // Allow action if owner or admin
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id) && req.user?.role !== 'admin') {
             res.status(403);
             throw new Error('Forbidden: not the owner');
         }
@@ -192,11 +195,35 @@ const updateRestaurant = async (req, res, next) => {
     }
 };
 
+const deleteRestaurant = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const restaurant = await Restaurant.findById(id);
+        if (!restaurant) {
+            res.status(404);
+            throw new Error('Restaurant not found');
+        }
+
+        // Allow if owner or admin
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id) && req.user?.role !== 'admin') {
+            res.status(403);
+            throw new Error('Forbidden: not the owner');
+        }
+
+        await restaurant.deleteOne();
+        // Also delete menu items for this restaurant
+        await MenuItem.deleteMany({ restaurantId: id });
+        res.json({ message: 'Restaurant deleted' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getRestaurants,
     getRestaurantById,
     createRestaurant,
     getMenuByRestaurant,
     createMenuItem
-    , getOwnerRestaurants, updateMenuItem, deleteMenuItem
+    , getOwnerRestaurants, updateMenuItem, deleteMenuItem, updateRestaurant, deleteRestaurant
 };

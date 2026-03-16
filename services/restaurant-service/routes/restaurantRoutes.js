@@ -8,7 +8,9 @@ const {
     createMenuItem,
     getOwnerRestaurants,
     updateMenuItem,
-    deleteMenuItem
+    deleteMenuItem,
+    updateRestaurant,
+    deleteRestaurant
 } = require('../controllers/restaurantController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -27,5 +29,7 @@ router.put('/:id/menu/:menuId', protect, updateMenuItem);
 router.delete('/:id/menu/:menuId', protect, deleteMenuItem);
 // Update restaurant details (owner only)
 router.put('/:id', protect, updateRestaurant);
+// Delete restaurant (owner or admin)
+router.delete('/:id', protect, deleteRestaurant);
 
 module.exports = router;
