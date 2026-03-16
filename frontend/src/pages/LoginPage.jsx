@@ -19,7 +19,9 @@ const LoginPage = () => {
 
         const res = await login(email, password);
         if (res.success) {
-            navigate('/');
+            const logged = res.user;
+            if (logged?.role === 'owner') navigate('/owner');
+            else navigate('/');
         } else {
             setError(res.message);
         }

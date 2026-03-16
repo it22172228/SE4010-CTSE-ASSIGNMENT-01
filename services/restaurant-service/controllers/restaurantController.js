@@ -33,6 +33,7 @@ const createRestaurant = async (req, res, next) => {
         }
 
         const restaurant = await Restaurant.create({
+            ownerId: req.user?.id || req.user?.id,
             name,
             cuisine,
             rating,
@@ -92,10 +93,83 @@ const createMenuItem = async (req, res, next) => {
     }
 };
 
+const getOwnerRestaurants = async (req, res, next) => {
+    try {
+        const ownerId = req.user?.id || req.user?.id;
+        const restaurants = await Restaurant.find({ ownerId });
+        res.json(restaurants);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateMenuItem = async (req, res, next) => {
+    try {
+        const { id, menuId } = req.params;
+        const { name, price, category, image } = req.body;
+
+        const restaurant = await Restaurant.findById(id);
+        if (!restaurant) {
+            res.status(404);
+            throw new Error('Restaurant not found');
+        }
+
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+            res.status(403);
+            throw new Error('Forbidden: not the owner');
+        }
+
+        const menuItem = await MenuItem.findOne({ _id: menuId, restaurantId: id });
+        if (!menuItem) {
+            res.status(404);
+            throw new Error('Menu item not found');
+        }
+
+        if (name !== undefined) menuItem.name = name;
+        if (price !== undefined) menuItem.price = price;
+        if (category !== undefined) menuItem.category = category;
+        if (image !== undefined) menuItem.image = image;
+
+        const updated = await menuItem.save();
+        res.json(updated);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteMenuItem = async (req, res, next) => {
+    try {
+        const { id, menuId } = req.params;
+
+        const restaurant = await Restaurant.findById(id);
+        if (!restaurant) {
+            res.status(404);
+            throw new Error('Restaurant not found');
+        }
+
+        if (String(restaurant.ownerId) !== String(req.user?.id || req.user?.id)) {
+            res.status(403);
+            throw new Error('Forbidden: not the owner');
+        }
+
+        const menuItem = await MenuItem.findOne({ _id: menuId, restaurantId: id });
+        if (!menuItem) {
+            res.status(404);
+            throw new Error('Menu item not found');
+        }
+
+        await menuItem.deleteOne();
+        res.json({ message: 'Menu item deleted' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getRestaurants,
     getRestaurantById,
     createRestaurant,
     getMenuByRestaurant,
     createMenuItem
+    , getOwnerRestaurants, updateMenuItem, deleteMenuItem
 };

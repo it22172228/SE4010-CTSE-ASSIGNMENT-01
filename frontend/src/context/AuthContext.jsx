@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('token', userData.token);
-            return { success: true };
+            return { success: true, user: userData };
         } catch (error) {
             return {
                 success: false,
@@ -36,14 +36,14 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (name, email, password) => {
+    const register = async (name, email, password, role = 'user') => {
         try {
-            const res = await authAPI.register({ name, email, password });
+            const res = await authAPI.register({ name, email, password, role });
             const userData = res.data;
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('token', userData.token);
-            return { success: true };
+            return { success: true, user: userData };
         } catch (error) {
             return {
                 success: false,

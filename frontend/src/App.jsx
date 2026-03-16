@@ -16,6 +16,8 @@ import CartPage from './pages/CartPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
+import OwnerDashboard from './pages/OwnerDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -81,6 +83,16 @@ function App() {
               <Route path="/restaurant/:id" element={<RestaurantPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/owner" element={
+                <ProtectedRoute>
+                  <OwnerDashboard />
+                </ProtectedRoute>
+              } />
 
               {/* Protected Routes */}
               <Route path="/cart" element={

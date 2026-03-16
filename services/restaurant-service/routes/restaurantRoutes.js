@@ -5,17 +5,25 @@ const {
     getRestaurantById,
     createRestaurant,
     getMenuByRestaurant,
-    createMenuItem
+    createMenuItem,
+    getOwnerRestaurants,
+    updateMenuItem,
+    deleteMenuItem
 } = require('../controllers/restaurantController');
 const { protect } = require('../middleware/authMiddleware');
 
 // Public routes for browsing
 router.get('/', getRestaurants);
-router.get('/:id', getRestaurantById);
+// Owner-specific listing must come before :id to avoid route shadowing
+router.get('/owner', protect, getOwnerRestaurants);
+// Menu route should be before generic :id
 router.get('/:id/menu', getMenuByRestaurant);
+router.get('/:id', getRestaurantById);
 
 // Protected routes for management (e.g. only authenticated users/admins)
 router.post('/', protect, createRestaurant);
 router.post('/:id/menu', protect, createMenuItem);
+router.put('/:id/menu/:menuId', protect, updateMenuItem);
+router.delete('/:id/menu/:menuId', protect, deleteMenuItem);
 
 module.exports = router;
