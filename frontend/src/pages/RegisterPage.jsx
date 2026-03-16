@@ -8,6 +8,7 @@ const RegisterPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('user');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
@@ -18,9 +19,11 @@ const RegisterPage = () => {
         setLoading(true);
         setError('');
 
-        const res = await register(name, email, password);
+        const res = await register(name, email, password, role);
         if (res.success) {
-            navigate('/');
+            const created = res.user;
+            if (created?.role === 'owner') navigate('/owner');
+            else navigate('/');
         } else {
             setError(res.message);
         }
@@ -70,6 +73,13 @@ const RegisterPage = () => {
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                             placeholder="you@example.com"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+                        <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow mb-4">
+                            <option value="user">User</option>
+                            <option value="owner">Restaurant Owner</option>
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>

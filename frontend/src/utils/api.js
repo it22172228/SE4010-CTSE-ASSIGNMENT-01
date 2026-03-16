@@ -2,10 +2,15 @@ import axios from 'axios';
 
 // Since we are running microservices on different ports, we define them here.
 // In production, an API Gateway would route these.
-const USER_API = 'http://localhost:3001/api';
-const RESTAURANT_API = 'http://localhost:3002/api';
-const ORDER_API = 'http://localhost:3003/api';
-const NOTIFICATION_API = 'http://localhost:3004/api';
+// Local service ports:
+// User Service: 1000
+// Notification Service: 2000
+// Order Service: 3000
+// Restaurant Service: 4000
+const USER_API = 'http://localhost:1000/api';
+const RESTAURANT_API = 'http://localhost:4000/api';
+const ORDER_API = 'http://localhost:3000/api';
+const NOTIFICATION_API = 'http://localhost:2000/api';
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -22,6 +27,13 @@ export const restaurantAPI = {
     getRestaurants: () => axios.get(`${RESTAURANT_API}/restaurants`),
     getRestaurant: (id) => axios.get(`${RESTAURANT_API}/restaurants/${id}`),
     getMenu: (id) => axios.get(`${RESTAURANT_API}/restaurants/${id}/menu`),
+    createRestaurant: (data) => axios.post(`${RESTAURANT_API}/restaurants`, data, { headers: getAuthHeaders() }),
+    updateRestaurant: (restaurantId, data) => axios.put(`${RESTAURANT_API}/restaurants/${restaurantId}`, data, { headers: getAuthHeaders() }),
+    // Owner APIs
+    getOwnerRestaurants: () => axios.get(`${RESTAURANT_API}/restaurants/owner`, { headers: getAuthHeaders() }),
+    createMenuItem: (restaurantId, data) => axios.post(`${RESTAURANT_API}/restaurants/${restaurantId}/menu`, data, { headers: getAuthHeaders() }),
+    updateMenuItem: (restaurantId, menuId, data) => axios.put(`${RESTAURANT_API}/restaurants/${restaurantId}/menu/${menuId}`, data, { headers: getAuthHeaders() }),
+    deleteMenuItem: (restaurantId, menuId) => axios.delete(`${RESTAURANT_API}/restaurants/${restaurantId}/menu/${menuId}`, { headers: getAuthHeaders() }),
 };
 
 export const orderAPI = {
