@@ -14,6 +14,7 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
     const [ownerLoading, setOwnerLoading] = useState(false);
     const [ownerError, setOwnerError] = useState('');
+    const [isEditingRestaurant, setIsEditingRestaurant] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -98,38 +99,75 @@ const ProfilePage = () => {
                                 </div>
                             )}
 
-                            {/* Edit/Create form for restaurant */}
+                            {/* Restaurant details / edit area */}
                             <div className="p-4 border rounded">
-                                <h4 className="font-semibold mb-2">{selectedRestaurant ? 'Edit Restaurant' : 'Create Restaurant'}</h4>
-                                <input value={restForm.name} onChange={e => setRestForm({...restForm, name: e.target.value})} placeholder="Name" className="w-full p-2 mb-2 border rounded" />
-                                <input value={restForm.cuisine} onChange={e => setRestForm({...restForm, cuisine: e.target.value})} placeholder="Cuisine" className="w-full p-2 mb-2 border rounded" />
-                                <input value={restForm.image} onChange={e => setRestForm({...restForm, image: e.target.value})} placeholder="Image URL" className="w-full p-2 mb-2 border rounded" />
-                                <div className="flex gap-2">
-                                    {selectedRestaurant ? (
-                                        <button onClick={async () => {
-                                            try {
-                                                await restaurantAPI.updateRestaurant(selectedRestaurant._id || selectedRestaurant.id, restForm);
-                                                // refresh
-                                                const { data } = await restaurantAPI.getOwnerRestaurants();
-                                                const list = Array.isArray(data) ? data : (data?.restaurants || []);
-                                                setOwnerRestaurants(list);
-                                                setSelectedRestaurant(list.find(x => String(x._id||x.id) === String(selectedRestaurant._id||selectedRestaurant.id)) || null);
-                                            } catch (err) { console.error(err); }
-                                        }} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Save</button>
-                                    ) : (
-                                        <button onClick={async () => {
-                                            try {
-                                                const { data } = await restaurantAPI.createRestaurant(restForm);
-                                                const { data: listData } = await restaurantAPI.getOwnerRestaurants();
-                                                const list = Array.isArray(listData) ? listData : (listData?.restaurants || []);
-                                                setOwnerRestaurants(list);
-                                                if (list.length > 0) setSelectedRestaurant(list[0]);
-                                                setRestForm({ name: '', cuisine: '', image: '' });
-                                            } catch (err) { console.error(err); }
-                                        }} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Create</button>
-                                    )}
-                                    <button onClick={() => { setSelectedRestaurant(null); setRestForm({ name: '', cuisine: '', image: '' }); }} className="px-4 py-2 bg-gray-200 rounded-xl">Clear</button>
-                                </div>
+                                {selectedRestaurant && !isEditingRestaurant ? (
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Restaurant Details</h4>
+                                        <div className="mb-2"><span className="font-medium">Name:</span> {selectedRestaurant.name}</div>
+                                        <div className="mb-2"><span className="font-medium">Cuisine:</span> {selectedRestaurant.cuisine}</div>
+                                        {selectedRestaurant.image && <div className="mb-2"><img src={selectedRestaurant.image} alt={selectedRestaurant.name} className="w-48 rounded" /></div>}
+                                        <div className="flex gap-2 mt-3">
+                                            <button onClick={() => setIsEditingRestaurant(true)} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Edit</button>
+                                            <button onClick={async () => {
+                                                try {
+                                                    await restaurantAPI.deleteRestaurant(selectedRestaurant._id || selectedRestaurant.id);
+                                                    const { data } = await restaurantAPI.getOwnerRestaurants();
+                                                    const list = Array.isArray(data) ? data : (data?.restaurants || []);
+                                                    setOwnerRestaurants(list);
+                                                    setSelectedRestaurant(list[0] || null);
+                                                } catch (err) { console.error(err); }
+                                            }} className="px-4 py-2 bg-red-600 text-white rounded-xl">Delete</button>
+                                        </div>
+                                    </div>
+                                ) : selectedRestaurant && isEditingRestaurant ? (
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Edit Restaurant</h4>
+                                        <input value={restForm.name} onChange={e => setRestForm({...restForm, name: e.target.value})} placeholder="Name" className="w-full p-2 mb-2 border rounded" />
+                                        <input value={restForm.cuisine} onChange={e => setRestForm({...restForm, cuisine: e.target.value})} placeholder="Cuisine" className="w-full p-2 mb-2 border rounded" />
+                                        <input value={restForm.image} onChange={e => setRestForm({...restForm, image: e.target.value})} placeholder="Image URL" className="w-full p-2 mb-2 border rounded" />
+                                        <div className="flex gap-2">
+                                            <button onClick={async () => {
+                                                try {
+                                                    await restaurantAPI.updateRestaurant(selectedRestaurant._id || selectedRestaurant.id, restForm);
+                                                    const { data } = await restaurantAPI.getOwnerRestaurants();
+                                                    const list = Array.isArray(data) ? data : (data?.restaurants || []);
+                                                    setOwnerRestaurants(list);
+                                                    setSelectedRestaurant(list.find(x => String(x._id||x.id) === String(selectedRestaurant._id||selectedRestaurant.id)) || null);
+                                                    setIsEditingRestaurant(false);
+                                                } catch (err) { console.error(err); }
+                                            }} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Save</button>
+                                            <button onClick={() => { setIsEditingRestaurant(false); setRestForm({ name: selectedRestaurant.name || '', cuisine: selectedRestaurant.cuisine || '', image: selectedRestaurant.image || '' }); }} className="px-4 py-2 bg-gray-200 rounded-xl">Cancel</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // No selectedRestaurant -> show create form
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Create Restaurant</h4>
+                                        <input value={restForm.name} onChange={e => setRestForm({...restForm, name: e.target.value})} placeholder="Name" className="w-full p-2 mb-2 border rounded" />
+                                        <input value={restForm.cuisine} onChange={e => setRestForm({...restForm, cuisine: e.target.value})} placeholder="Cuisine" className="w-full p-2 mb-2 border rounded" />
+                                        <input value={restForm.image} onChange={e => setRestForm({...restForm, image: e.target.value})} placeholder="Image URL" className="w-full p-2 mb-2 border rounded" />
+                                        <div className="flex gap-2">
+                                            <button onClick={async () => {
+                                                try {
+                                                    const { data: created } = await restaurantAPI.createRestaurant(restForm);
+                                                    if (created) {
+                                                        setOwnerRestaurants(prev => [created, ...prev]);
+                                                        setSelectedRestaurant(created);
+                                                        setRestForm({ name: '', cuisine: '', image: '' });
+                                                    } else {
+                                                        // fallback: refresh list
+                                                        const { data: listData } = await restaurantAPI.getOwnerRestaurants();
+                                                        const list = Array.isArray(listData) ? listData : (listData?.restaurants || []);
+                                                        setOwnerRestaurants(list);
+                                                        if (list.length > 0) setSelectedRestaurant(list[0]);
+                                                    }
+                                                } catch (err) { console.error(err); setOwnerError(err.response?.data?.message || err.message); }
+                                            }} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Create</button>
+                                            <button onClick={() => { setSelectedRestaurant(null); setRestForm({ name: '', cuisine: '', image: '' }); }} className="px-4 py-2 bg-gray-200 rounded-xl">Clear</button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

@@ -13,6 +13,7 @@ const OwnerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -152,7 +153,10 @@ const OwnerDashboard = () => {
                                 <input value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Category" className="p-2 border rounded" />
                                 <input value={form.image} onChange={e => setForm({...form, image: e.target.value})} placeholder="Image URL" className="p-2 border rounded" />
                             </div>
-                            <button onClick={handleCreate} className="mt-3 px-4 py-2 bg-primary-600 text-white rounded-xl">Add Item</button>
+                            <div className="flex gap-2 mt-3">
+                                <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Open Add Item Modal</button>
+                                <button onClick={handleCreate} className="px-4 py-2 bg-primary-600 text-white rounded-xl">Add Item (inline)</button>
+                            </div>
                             <div className="mt-3 text-xs text-gray-500">Debug: selected id = {selected?._id || selected?.id}</div>
                             <button onClick={() => console.log('token:', localStorage.getItem('token'))} className="mt-2 text-xs text-gray-500 underline">Log token to console</button>
                         </div>
@@ -181,6 +185,28 @@ const OwnerDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-white rounded-xl w-full max-w-lg p-6">
+                        <h3 className="text-lg font-semibold mb-4">Add Menu Item</h3>
+                        <div className="grid grid-cols-1 gap-3">
+                            <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Name" className="p-2 border rounded" />
+                            <input value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="Price" className="p-2 border rounded" />
+                            <input value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Category" className="p-2 border rounded" />
+                            <input value={form.image} onChange={e => setForm({...form, image: e.target.value})} placeholder="Image URL" className="p-2 border rounded" />
+                        </div>
+                        <div className="flex justify-end gap-2 mt-4">
+                            <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+                            <button onClick={async () => {
+                                await handleCreate();
+                                setShowModal(false);
+                            }} className="px-4 py-2 bg-primary-600 text-white rounded">Create</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
